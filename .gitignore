@@ -1,0 +1,18 @@
+# Secret files
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# React / Node.js
+node_modules/
+dist/
+build/
+
+# System files
+.DS_Store
+Thumbs.db
