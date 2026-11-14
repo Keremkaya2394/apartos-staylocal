@@ -1,9 +1,10 @@
 
-import { useState } from 'react'
+type SidebarProps = {
+  activePage: string
+  onPageChange: (page: string) => void
+}
 
-function Sidebar() {
-  const [activeMenu, setActiveMenu] = useState('Dashboard')
-
+function Sidebar({ activePage, onPageChange }: SidebarProps) {
   const menuItems = [
     'Dashboard',
     'Apartments',
@@ -26,9 +27,9 @@ function Sidebar() {
             key={item}
             type="button"
             className={`sidebar-link ${
-              activeMenu === item ? 'active' : ''
+              activePage === item ? 'active' : ''
             }`}
-            onClick={() => setActiveMenu(item)}
+            onClick={() => onPageChange(item)}
           >
             {item}
           </button>
@@ -43,3 +44,4 @@ function Sidebar() {
 }
 
 export default Sidebar
+

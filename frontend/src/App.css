@@ -296,3 +296,116 @@ main {
   color: #991b1b;
   background: #fee2e2;
 }
+
+/* Apartment Management */
+
+.apartments-page {
+  color: #172033;
+}
+
+.apartments-page h1 {
+  margin-top: 0;
+}
+
+.apartment-form-section,
+.apartment-list-section {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 25px;
+}
+
+.apartment-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.apartment-form input {
+  width: 100%;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  color: #172033;
+}
+
+.apartment-form button {
+  padding: 13px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+}
+
+.apartment-form button:hover {
+  background: #1d4ed8;
+}
+
+.apartment-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.apartment-card {
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.apartment-card h3 {
+  margin-top: 0;
+}
+
+.apartment-card p {
+  color: #64748b;
+}
+
+.delete-button {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background: #fecaca;
+}
+
+@media (max-width: 800px) {
+  .apartment-form,
+  .apartment-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Reservation form */
+
+.apartment-form select {
+  width: 100%;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  color: #172033;
+}
+
+.apartment-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #475569;
+  font-size: 14px;
+}
+
+.apartment-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
