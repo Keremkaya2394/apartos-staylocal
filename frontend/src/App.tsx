@@ -1,42 +1,52 @@
 
+import Sidebar from './components/Sidebar'
+import StatCard from './components/StatCard'
+import ReservationTable from './components/ReservationTable'
 import './App.css'
 
 function App() {
   return (
-    <div className="dashboard">
-      <header className="header">
-        <h1>ApartOS</h1>
-        <p>Apartment Management Dashboard</p>
-      </header>
+    <div className="dashboard-layout">
+      <Sidebar />
 
-      <main>
-        <h2>Dashboard Overview</h2>
-        <p>Welcome to your property management system.</p>
+      <main className="dashboard-content">
+        <h1>Dashboard Overview</h1>
+        <p>Welcome to ApartOS Property Management.</p>
 
+        {/* Statistics Cards */}
         <div className="stats">
-          <div className="stat-card">
-            <h3>Total Apartments</h3>
-            <strong>12</strong>
-          </div>
+          <StatCard
+            title="Total Apartments"
+            value={12}
+            icon="🏠"
+          />
 
-          <div className="stat-card">
-            <h3>Active Reservations</h3>
-            <strong>8</strong>
-          </div>
+          <StatCard
+            title="Active Reservations"
+            value={8}
+            icon="📅"
+          />
 
-          <div className="stat-card">
-            <h3>Available Apartments</h3>
-            <strong>4</strong>
-          </div>
+          <StatCard
+            title="Available Apartments"
+            value={4}
+            icon="🔑"
+          />
 
-          <div className="stat-card">
-            <h3>Monthly Revenue</h3>
-            <strong>₺85,000</strong>
-          </div>
+          <StatCard
+            title="Monthly Revenue"
+            value="₺85,000"
+            icon="💰"
+          />
         </div>
+
+        {/* Recent Reservations */}
+        <ReservationTable />
+
       </main>
     </div>
   )
 }
 
 export default App
+
