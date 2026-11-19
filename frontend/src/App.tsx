@@ -11,6 +11,7 @@ import Reservations from './pages/Reservations'
 import Calendar from './pages/Calendar'
 import Revenue from './pages/Revenue'
 import Guests from './pages/Guests'
+import Settings from './pages/Settings'
 
 import './App.css'
 
@@ -42,6 +43,7 @@ const initialApartments: Apartment[] = [
 function loadData<T>(key: string, fallback: T): T {
   try {
     const saved = localStorage.getItem(key)
+
     return saved ? JSON.parse(saved) as T : fallback
   } catch {
     return fallback
@@ -52,20 +54,46 @@ function App() {
   const [activePage, setActivePage] = useState('Dashboard')
 
   const [apartments, setApartments] = useState(() =>
-    loadData<Apartment[]>('apartos-apartments', initialApartments)
+    loadData<Apartment[]>(
+      'apartos-apartments',
+      initialApartments
+    )
   )
 
   const [reservations, setReservations] = useState(() =>
-    loadData<Reservation[]>('apartos-reservations', [])
+    loadData<Reservation[]>(
+      'apartos-reservations',
+      []
+    )
+  )
+
+  const [business, setBusiness] = useState(() =>
+    loadData(
+      'apartos-settings',
+      { businessName: 'ApartOS Property' }
+    )
   )
 
   function changePage(page: string) {
     setApartments(
-      loadData<Apartment[]>('apartos-apartments', initialApartments)
+      loadData<Apartment[]>(
+        'apartos-apartments',
+        initialApartments
+      )
     )
 
     setReservations(
-      loadData<Reservation[]>('apartos-reservations', [])
+      loadData<Reservation[]>(
+        'apartos-reservations',
+        []
+      )
+    )
+
+    setBusiness(
+      loadData(
+        'apartos-settings',
+        { businessName: 'ApartOS Property' }
+      )
     )
 
     setActivePage(page)
@@ -101,18 +129,24 @@ function App() {
 
   return (
     <div className="dashboard-layout">
+
       <Sidebar
         activePage={activePage}
         onPageChange={changePage}
       />
 
       <main className="dashboard-content">
+
         {activePage === 'Dashboard' && (
           <>
             <h1>Dashboard Overview</h1>
-            <p>Welcome to ApartOS Property Management.</p>
+
+            <p>
+              Welcome to {business.businessName || 'ApartOS'}.
+            </p>
 
             <div className="stats">
+
               <StatCard
                 title="Total Apartments"
                 value={totalApartments}
@@ -133,9 +167,12 @@ function App() {
 
               <StatCard
                 title="Average Nightly Price"
-                value={`${Math.round(averagePrice).toLocaleString('tr-TR')} ₺`}
+                value={`${Math.round(
+                  averagePrice
+                ).toLocaleString('tr-TR')} ₺`}
                 icon="💰"
               />
+
             </div>
 
             <ReservationTable
@@ -155,19 +192,8 @@ function App() {
 
         {activePage === 'Guests' && <Guests />}
 
-        {![
-          'Dashboard',
-          'Apartments',
-          'Reservations',
-          'Calendar',
-          'Revenue',
-          'Guests'
-        ].includes(activePage) && (
-          <div>
-            <h1>{activePage}</h1>
-            <p>This page is under development.</p>
-          </div>
-        )}
+        {activePage === 'Settings' && <Settings />}
+
       </main>
     </div>
   )
