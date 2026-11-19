@@ -8,6 +8,7 @@ import type { Reservation } from './components/ReservationTable'
 
 import Apartments from './pages/Apartments'
 import Reservations from './pages/Reservations'
+import Calendar from './pages/Calendar'
 
 import './App.css'
 
@@ -112,8 +113,18 @@ function App() {
 
   const totalApartments = apartments.length
 
+  const now = new Date()
+
+  const today = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, '0'),
+    String(now.getDate()).padStart(2, '0')
+  ].join('-')
+
   const activeReservations = reservations.filter(
-    (reservation) => reservation.status === 'Confirmed'
+    (reservation) =>
+      reservation.status === 'Confirmed' &&
+      reservation.checkOut > today
   ).length
 
   const totalCapacity = apartments.reduce(
@@ -131,21 +142,18 @@ function App() {
 
   return (
     <div className="dashboard-layout">
-
       <Sidebar
         activePage={activePage}
         onPageChange={changePage}
       />
 
       <main className="dashboard-content">
-
         {activePage === 'Dashboard' && (
           <>
             <h1>Dashboard Overview</h1>
             <p>Welcome to ApartOS Property Management.</p>
 
             <div className="stats">
-
               <StatCard
                 title="Total Apartments"
                 value={totalApartments}
@@ -171,7 +179,6 @@ function App() {
                 ).toLocaleString('tr-TR')} ₺`}
                 icon="💰"
               />
-
             </div>
 
             <ReservationTable
@@ -181,25 +188,23 @@ function App() {
           </>
         )}
 
-        {activePage === 'Apartments' && (
-          <Apartments />
-        )}
+        {activePage === 'Apartments' && <Apartments />}
 
-        {activePage === 'Reservations' && (
-          <Reservations />
-        )}
+        {activePage === 'Reservations' && <Reservations />}
+
+        {activePage === 'Calendar' && <Calendar />}
 
         {![
           'Dashboard',
           'Apartments',
-          'Reservations'
+          'Reservations',
+          'Calendar'
         ].includes(activePage) && (
           <div>
             <h1>{activePage}</h1>
             <p>This page is under development.</p>
           </div>
         )}
-
       </main>
     </div>
   )

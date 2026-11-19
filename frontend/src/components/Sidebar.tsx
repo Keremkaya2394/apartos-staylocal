@@ -9,6 +9,7 @@ function Sidebar({ activePage, onPageChange }: SidebarProps) {
     'Dashboard',
     'Apartments',
     'Reservations',
+    'Calendar',
     'Guests',
     'Revenue',
     'Settings'
@@ -44,4 +45,3 @@ function Sidebar({ activePage, onPageChange }: SidebarProps) {
 }
 
 export default Sidebar
-
