@@ -5,6 +5,7 @@ import type { FormEvent } from 'react'
 type Apartment = {
   id: number
   name: string
+  price: number
 }
 
 type Reservation = {
@@ -14,64 +15,36 @@ type Reservation = {
   checkIn: string
   checkOut: string
   status: 'Confirmed' | 'Cancelled'
+  nightlyPrice?: number
+  totalPrice?: number
 }
 
-const defaultApartments: Apartment[] = [
-  { id: 1, name: 'Sea View Apartment' },
-  { id: 2, name: 'Garden Suite' }
-]
-
-function loadApartments(): Apartment[] {
+function loadData<T>(key: string, fallback: T): T {
   try {
-    const saved = localStorage.getItem('apartos-apartments')
-
-    if (saved === null) return defaultApartments
-
-    const data: unknown = JSON.parse(saved)
-
-    if (!Array.isArray(data)) return []
-
-    return data.filter(
-      (item): item is Apartment =>
-        item !== null &&
-        typeof item === 'object' &&
-        typeof item.id === 'number' &&
-        typeof item.name === 'string'
-    )
+    const saved = localStorage.getItem(key)
+    return saved ? JSON.parse(saved) as T : fallback
   } catch {
-    return []
+    return fallback
   }
 }
 
-function loadReservations(): Reservation[] {
-  try {
-    const saved = localStorage.getItem('apartos-reservations')
-
-    if (saved === null) return []
-
-    const data: unknown = JSON.parse(saved)
-
-    if (!Array.isArray(data)) return []
-
-    return data.filter(
-      (item): item is Reservation =>
-        item !== null &&
-        typeof item === 'object' &&
-        typeof item.id === 'string' &&
-        typeof item.apartmentId === 'number' &&
-        typeof item.guestName === 'string' &&
-        typeof item.checkIn === 'string' &&
-        typeof item.checkOut === 'string' &&
-        ['Confirmed', 'Cancelled'].includes(item.status)
-    )
-  } catch {
-    return []
-  }
+function getNights(checkIn: string, checkOut: string) {
+  return Math.round(
+    (Date.parse(checkOut) - Date.parse(checkIn)) / 86400000
+  )
 }
 
 function Reservations() {
-  const [apartments] = useState(loadApartments)
-  const [reservations, setReservations] = useState(loadReservations)
+  const [apartments] = useState(() =>
+    loadData<Apartment[]>('apartos-apartments', [
+      { id: 1, name: 'Sea View Apartment', price: 2500 },
+      { id: 2, name: 'Garden Suite', price: 3200 }
+    ])
+  )
+
+  const [reservations, setReservations] = useState(() =>
+    loadData<Reservation[]>('apartos-reservations', [])
+  )
 
   const [apartmentId, setApartmentId] = useState('')
   const [guestName, setGuestName] = useState('')
@@ -79,6 +52,16 @@ function Reservations() {
   const [checkOut, setCheckOut] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+
+  const selectedApartment = apartments.find(
+    (apartment) => apartment.id === Number(apartmentId)
+  )
+
+  const nights = checkIn && checkOut
+    ? Math.max(0, getNights(checkIn, checkOut))
+    : 0
+
+  const totalPrice = nights * (selectedApartment?.price ?? 0)
 
   useEffect(() => {
     localStorage.setItem(
@@ -92,10 +75,8 @@ function Reservations() {
     setError('')
     setMessage('')
 
-    const selectedId = Number(apartmentId)
-
-    if (!apartments.some((apartment) => apartment.id === selectedId)) {
-      setError('Please select a valid apartment.')
+    if (!selectedApartment) {
+      setError('Please select an apartment.')
       return
     }
 
@@ -104,35 +85,41 @@ function Reservations() {
       return
     }
 
-    if (checkOut <= checkIn) {
+    if (!Number.isFinite(nights) || nights <= 0) {
       setError('Check-out must be after check-in.')
       return
     }
 
-    const hasConflict = reservations.some((reservation) => {
-      if (reservation.status === 'Cancelled') return false
-      if (reservation.apartmentId !== selectedId) return false
+    if (
+      !Number.isFinite(selectedApartment.price) ||
+      selectedApartment.price <= 0
+    ) {
+      setError('Invalid apartment price.')
+      return
+    }
 
-      return (
+    const hasConflict = reservations.some(
+      (reservation) =>
+        reservation.status === 'Confirmed' &&
+        reservation.apartmentId === selectedApartment.id &&
         checkIn < reservation.checkOut &&
         checkOut > reservation.checkIn
-      )
-    })
+    )
 
     if (hasConflict) {
-      setError(
-        'This apartment is already reserved for the selected dates.'
-      )
+      setError('This apartment is already reserved for these dates.')
       return
     }
 
     const newReservation: Reservation = {
       id: crypto.randomUUID(),
-      apartmentId: selectedId,
+      apartmentId: selectedApartment.id,
       guestName: guestName.trim(),
       checkIn,
       checkOut,
-      status: 'Confirmed'
+      status: 'Confirmed',
+      nightlyPrice: selectedApartment.price,
+      totalPrice: totalPrice
     }
 
     setReservations((current) => [...current, newReservation])
@@ -145,11 +132,7 @@ function Reservations() {
   }
 
   function cancelReservation(id: string) {
-    const confirmed = window.confirm(
-      'Are you sure you want to cancel this reservation?'
-    )
-
-    if (!confirmed) return
+    if (!window.confirm('Cancel this reservation?')) return
 
     setReservations((current) =>
       current.map((reservation) =>
@@ -164,8 +147,8 @@ function Reservations() {
   }
 
   function getApartmentName(id: number) {
-    return apartments.find((apartment) => apartment.id === id)?.name
-      ?? 'Deleted apartment'
+    return apartments.find((item) => item.id === id)?.name
+      ?? 'Deleted Apartment'
   }
 
   return (
@@ -179,10 +162,12 @@ function Reservations() {
         <form className="apartment-form" onSubmit={addReservation}>
           <select
             value={apartmentId}
+            aria-label="Select apartment"
             onChange={(event) => setApartmentId(event.target.value)}
             required
           >
             <option value="">Select Apartment</option>
+
             {apartments.map((apartment) => (
               <option key={apartment.id} value={apartment.id}>
                 {apartment.name}
@@ -193,7 +178,6 @@ function Reservations() {
           <input
             type="text"
             placeholder="Guest Full Name"
-            aria-label="Guest full name"
             value={guestName}
             onChange={(event) => setGuestName(event.target.value)}
             required
@@ -219,6 +203,18 @@ function Reservations() {
               required
             />
           </label>
+
+          {selectedApartment && (
+            <div className="stat-card">
+              <p>
+                Nightly Price: {selectedApartment.price.toLocaleString('tr-TR')} ₺
+              </p>
+              <p>Total Nights: {nights}</p>
+              <strong>
+                {totalPrice.toLocaleString('tr-TR')} ₺
+              </strong>
+            </div>
+          )}
 
           <button type="submit" disabled={apartments.length === 0}>
             Create Reservation
@@ -247,6 +243,8 @@ function Reservations() {
                 <th>Apartment</th>
                 <th>Check-in</th>
                 <th>Check-out</th>
+                <th>Nights</th>
+                <th>Total Price</th>
                 <th>Status</th>
                 <th>Action</th>
               </tr>
@@ -260,10 +258,16 @@ function Reservations() {
                   <td>{reservation.checkIn}</td>
                   <td>{reservation.checkOut}</td>
                   <td>
+                    {getNights(reservation.checkIn, reservation.checkOut)}
+                  </td>
+                  <td>
+                    {reservation.totalPrice !== undefined
+                      ? `${reservation.totalPrice.toLocaleString('tr-TR')} ₺`
+                      : 'Not recorded'}
+                  </td>
+                  <td>
                     <span
-                      className={`status-badge ${
-                        reservation.status.toLowerCase()
-                      }`}
+                      className={`status-badge ${reservation.status.toLowerCase()}`}
                     >
                       {reservation.status}
                     </span>

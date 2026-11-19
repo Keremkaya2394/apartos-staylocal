@@ -9,6 +9,8 @@ import type { Reservation } from './components/ReservationTable'
 import Apartments from './pages/Apartments'
 import Reservations from './pages/Reservations'
 import Calendar from './pages/Calendar'
+import Revenue from './pages/Revenue'
+import Guests from './pages/Guests'
 
 import './App.css'
 
@@ -37,77 +39,35 @@ const initialApartments: Apartment[] = [
   }
 ]
 
-function getApartments(): Apartment[] {
+function loadData<T>(key: string, fallback: T): T {
   try {
-    const saved = localStorage.getItem('apartos-apartments')
-
-    if (saved === null) return initialApartments
-
-    const data: unknown = JSON.parse(saved)
-
-    if (
-      Array.isArray(data) &&
-      data.every(
-        (item) =>
-          item !== null &&
-          typeof item === 'object' &&
-          typeof item.id === 'number' &&
-          typeof item.name === 'string' &&
-          typeof item.location === 'string' &&
-          typeof item.price === 'number' &&
-          typeof item.capacity === 'number'
-      )
-    ) {
-      return data as Apartment[]
-    }
+    const saved = localStorage.getItem(key)
+    return saved ? JSON.parse(saved) as T : fallback
   } catch {
-    console.error('Could not load apartments.')
+    return fallback
   }
-
-  return []
-}
-
-function getReservations(): Reservation[] {
-  try {
-    const saved = localStorage.getItem('apartos-reservations')
-
-    if (saved === null) return []
-
-    const data: unknown = JSON.parse(saved)
-
-    if (!Array.isArray(data)) return []
-
-    return data.filter(
-      (item): item is Reservation =>
-        item !== null &&
-        typeof item === 'object' &&
-        typeof item.id === 'string' &&
-        typeof item.apartmentId === 'number' &&
-        typeof item.guestName === 'string' &&
-        typeof item.checkIn === 'string' &&
-        typeof item.checkOut === 'string' &&
-        (item.status === 'Confirmed' ||
-          item.status === 'Cancelled')
-    )
-  } catch {
-    console.error('Could not load reservations.')
-  }
-
-  return []
 }
 
 function App() {
   const [activePage, setActivePage] = useState('Dashboard')
 
-  const [apartments, setApartments] =
-    useState<Apartment[]>(getApartments)
+  const [apartments, setApartments] = useState(() =>
+    loadData<Apartment[]>('apartos-apartments', initialApartments)
+  )
 
-  const [reservations, setReservations] =
-    useState<Reservation[]>(getReservations)
+  const [reservations, setReservations] = useState(() =>
+    loadData<Reservation[]>('apartos-reservations', [])
+  )
 
   function changePage(page: string) {
-    setApartments(getApartments())
-    setReservations(getReservations())
+    setApartments(
+      loadData<Apartment[]>('apartos-apartments', initialApartments)
+    )
+
+    setReservations(
+      loadData<Reservation[]>('apartos-reservations', [])
+    )
+
     setActivePage(page)
   }
 
@@ -132,13 +92,12 @@ function App() {
     0
   )
 
-  const averagePrice =
-    totalApartments > 0
-      ? apartments.reduce(
-          (total, apartment) => total + apartment.price,
-          0
-        ) / totalApartments
-      : 0
+  const averagePrice = totalApartments > 0
+    ? apartments.reduce(
+        (total, apartment) => total + apartment.price,
+        0
+      ) / totalApartments
+    : 0
 
   return (
     <div className="dashboard-layout">
@@ -174,9 +133,7 @@ function App() {
 
               <StatCard
                 title="Average Nightly Price"
-                value={`${Math.round(
-                  averagePrice
-                ).toLocaleString('tr-TR')} ₺`}
+                value={`${Math.round(averagePrice).toLocaleString('tr-TR')} ₺`}
                 icon="💰"
               />
             </div>
@@ -194,11 +151,17 @@ function App() {
 
         {activePage === 'Calendar' && <Calendar />}
 
+        {activePage === 'Revenue' && <Revenue />}
+
+        {activePage === 'Guests' && <Guests />}
+
         {![
           'Dashboard',
           'Apartments',
           'Reservations',
-          'Calendar'
+          'Calendar',
+          'Revenue',
+          'Guests'
         ].includes(activePage) && (
           <div>
             <h1>{activePage}</h1>
