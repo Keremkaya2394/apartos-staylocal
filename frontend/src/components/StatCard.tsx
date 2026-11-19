@@ -1,20 +1,40 @@
 
+import type { ReactNode } from 'react'
+
 type StatCardProps = {
   title: string
   value: string | number
-  icon: string
+  icon: ReactNode
+  description?: string
+  color?: 'blue' | 'green' | 'purple' | 'orange'
 }
 
-function StatCard({ title, value, icon }: StatCardProps) {
+function StatCard({
+  title,
+  value,
+  icon,
+  description,
+  color = 'blue'
+}: StatCardProps) {
   return (
-    <div className="stat-card">
+    <article className="stat-card">
       <div className="stat-card-header">
-        <span className="stat-icon">{icon}</span>
-        <h3>{title}</h3>
+        <div className={`stat-icon stat-icon-${color}`}>
+          {icon}
+        </div>
       </div>
 
-      <strong>{value}</strong>
-    </div>
+      <div className="stat-card-body">
+        <h3>{title}</h3>
+        <strong>{value}</strong>
+
+        {description && (
+          <p className="stat-description">
+            {description}
+          </p>
+        )}
+      </div>
+    </article>
   )
 }
 
